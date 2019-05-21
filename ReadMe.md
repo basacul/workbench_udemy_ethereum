@@ -17,6 +17,13 @@ The Interact.sol contract was discussed in one of the past lectures. Use web3 fo
         * Create a UI component that will  show messages in a friendly way
         * Start an event listener using the web3 events API
 
+For this assignment I will simply use the contract at address 0x1F20E0a14121276220Dc049696590fCbfa0621E0 in the Rinkeby test network instead of deploying the contract.
+
+ABI Definition of the contract with address 0x1F20E0a14121276220Dc049696590fCbfa0621E0.
+```json
+[{"constant":false,"inputs":[{"name":"yourName","type":"bytes32"}],"name":"interact","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"currentName","outputs":[{"name":"","type":"bytes32"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"fromAddres","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"lastUpdatedMinutes","outputs":[{"name":"","type":"uint256"}],"payable":false,"type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"name","type":"bytes32"},{"indexed":true,"name":"addr","type":"address"},{"indexed":true,"name":"timeUpdated","type":"uint256"}],"name":"Interaction","type":"event"}]
+```
+
 ```solidity
 pragma solidity ^0.5.8;
 

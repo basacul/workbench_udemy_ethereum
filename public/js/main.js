@@ -581,12 +581,14 @@ function createContractInstance(addr) {
  * locally on the node with no state change propagation
  */
 function doContractFunctionCall() {
+    console.log("First");
     // This leads to the invocation of the method locally
     var instance = createContractInstance();
 
     var funcName = document.getElementById('contract_select_function').value;
-
+    console.log("if");
     if (funcName === 'setNum') {
+        console.log("if");
         var parameterValue = document.getElementById('setnum_parameter').value;
 
         // MetaMask does not allow synchronous call to 'call' for non-constant function
@@ -595,7 +597,7 @@ function doContractFunctionCall() {
 
         setExecuteResultUI('Call', funcName, parameterValue, value, '', false);
     } else {
-
+        console.log("else");
         instance.getNum.call({}, web3.eth.defaultBlock, function (error, result) {
             setExecuteResultUI('Call', funcName, '', result, '', false);
         });
