@@ -96,7 +96,9 @@ function startApp() {
         // Gets the version data and populates the result UI
         setWeb3Version();
 
-        if (autoRetrieveFlag) doGetAccounts();
+        if (autoRetrieveFlag) {
+            doGetAccounts();
+        }
 
     } else {
         setData('connect_status', 'Not Connected', true);
@@ -139,39 +141,23 @@ function doConnect() {
 /**
  * Get the version information for Web3
  */
-
 function setWeb3Version() {
-
-    var versionJson = {};
-
-    // Asynchronous version
     web3.version.getNode(function (error, result) {
-        if (error) setData('version_information', error, true);
-        else {
-            if (result.toLowerCase().includes('metamask')) {
-                nodeType = 'metamask';
-            } else if (result.toLowerCase().includes('testrpc')) {
-                nodeType = 'testrpc';
+        if (error) {
+            setData("version_information", error, true)
+        } else {
+            setData("version_information", result, false)
+            if (result.toLowerCase().includes("metamask")) {
+                nodeType = "metamask";
+            } else if (result.toLowerCase().includes("testrpc")) {
+                nodeType = "testrpc";
             } else {
-                nodeType = 'geth';
+                nodeType = "geth";
             }
-
-            // synchronous method calls from the web3 api
-            let output = {
-                api: web3.version.api,
-                ethereum: web3.version.ethereum,
-                network: web3.version.network,
-                node: `${nodeType} ${result}`
-            };
-
-            setData('version_information', JSON.stringify(output, null, 10), false);
-
-            // set up UI elements based on the node type
-            setUIBasedOnNodeType();
+            setUIBasedOnNodeType()
         }
-    });
+    })
 }
-
 
 
 /**
@@ -262,6 +248,7 @@ function doGetAccounts() {
             for (var i = 0; i < result.length; i++) {
                 addAccountsToList('accounts_list', i, result[i])
             }
+
 
             var coinbase = web3.eth.coinbase;
             // trim it so as to fit in the window/UI
@@ -516,40 +503,28 @@ function doDeployContract() {
  * Function not in use from UI. Created to show how once can use the synch API
  * contract.new
  */
-
 function doDeployContractSynchronous() {
-
-    var abiDefinitionString = document.getElementById('compiled_abidefinition').value;
-    var abiDefinition = JSON.parse(abiDefinitionString);
-
-    var bytecode = document.getElementById('compiled_bytecode').value;
-
-    // 1. Create the contract object
-    var contract = web3.eth.contract(abiDefinition);
-
-    // Get the estimated gas
-    var gas = document.getElementById('deployment_estimatedgas').value;
-
-    // 2. Create the params for deployment - all other params are optional, uses default
-    var params = {
-        from: web3.eth.coinbase,
-        data: bytecode,
-        gas: gas
-    }
-
-    var contractData = contract.new.getData(10, { 'data': bytecode });
-    console.log('Contract Data=', contractData);
-    // call send transaction and then call getTransactionReceipt
-    params.data = contractData
-    var transactionHash = web3.eth.sendTransaction(params)
-    console.log('TxnHash=', transactionHash);
-    web3.eth.getTransactionReceipt(transactionHash, function (error, result) {
-        if (error) console.log('SENDTran Error=', error)
-        else if (error) console.log('SENDTran Hash=', result);
-    });
-
-    return
+    let abiDefinitionString = document.getElementById("compiled_abidefinition").value;
+    let abiDefinition = JSON.parse(abiDefinitionString);
+    let bytecode = document.getElementById("compiled_bytecode").value;
+    let contract = web3.eth.contract(abiDefinition);
+    let gas = document.getElementById("deployment_estimatedgas").value;
+    let params = { from: web3.eth.coinbase, data: bytecode, gas: gas };
+    let contractData = contract.new.getData(10, { data: bytecode });
+    console.log("Contract Data=", contractData);
+    params.data = contractData;
+    let transactionHash = web3.eth.sendTransaction(params);
+    console.log("TxnHash=", transactionHash);
+    web3.eth.getTransactionReceipt(r, function (error, result) {
+        if (error) {
+            console.log("SENDTran Error=", error)
+        } else {
+            console.log("SENDTran Hash=", result)
+        }
+    })
 }
+
+
 
 // Utility method for creating the contract instance
 function createContractInstance(addr) {
