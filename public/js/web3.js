@@ -912,7 +912,6 @@ require = (function e(t, n, r) { function s(o, u) { if (!n[o]) { if (!t[o]) { va
          */
 
         var BigNumber = require('bignumber.js');
-        console.log("A big number object", value_big);
         var utils = require('../utils/utils');
         var c = require('../utils/config');
 

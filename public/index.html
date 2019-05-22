@@ -7,7 +7,6 @@ s<html lang="">
     <title>Interactsol Interface</title>
 
     <link rel="stylesheet" href="/css/main.css">
-    <!-- endbuild -->
 
 </head>
 
@@ -387,11 +386,11 @@ contract MyContract {
         </div>
     </div>
 
-
-    <!-- <script src="/js/bignumber/bignumber.js"></script> -->
-    <!-- <script src="/js/crypto-js/index.js"></script> -->
-    <script src="js/web3/web3.js"></script>
-
+    <!-- web3.js is only needed when MetaMask is not installed otherwise
+         this library is not needed as it will be injected by MetaMaks making
+         it unnecessary. Thus web3 functionality may only be activated 
+         when MetaMask is available if it is absolutely necessary -->
+    <script src="js/web3.js"></script>
     <script src="/js/utils.js"></script>
     <script src="/js/main.js"></script>
 
