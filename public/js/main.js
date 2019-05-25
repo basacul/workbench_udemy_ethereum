@@ -114,10 +114,7 @@ function startApp() {
     // // doGetAccounts();
     // doGetNodeStatus();
 
-    // Compilation is available only for TestRPC
-    // Geth 1.6 and above does not support compilation
-    // MetaMask does not support compilation
-    doGetCompilers();
+
 }
 
 /**
@@ -130,7 +127,6 @@ function startApp() {
 function doConnect() {
 
     // Get the provider URL
-    var provider = document.getElementById('provider_url').value;
     var provider = document.getElementById('provider_url').value;
     window.web3 = new Web3(new Web3.providers.HttpProvider(provider));
 
@@ -151,8 +147,10 @@ function setWeb3Version() {
                 nodeType = "metamask";
             } else if (result.toLowerCase().includes("testrpc")) {
                 nodeType = "testrpc";
-            } else {
+            } else if (result.toLowerCase().includes("geth")) {
                 nodeType = "geth";
+            } else {
+                nodeType = "A very special node type";
             }
             setUIBasedOnNodeType()
         }
@@ -173,8 +171,9 @@ function doGetNodeStatus() {
      * otherwise false
      */
     web3.net.getListening(function (error, result) {
-        if (error) setData('get_peer_count', error, true);
-        else {
+        if (error) {
+            setData('get_peer_count', error, true);
+        } else {
             // Since connected lets get the count
             web3.net.getPeerCount(function (error, result) {
                 if (error) {
@@ -190,9 +189,12 @@ function doGetNodeStatus() {
     web3.eth.getSyncing(function (error, result) {
         if (error) {
             setData("node_syncing_status", error, true);
-
         } else {
             if (result) {
+                /* 
+                 * The result is an object of the form
+                 * {startingBlock: 202, currentBlock: 199, highestBlock: 300}
+                 */
                 setData("node_syncing_status", JSON.stringify(result, null, 10), false);
             } else {
                 setData("node_syncing_status", "UNKNOWN", false)
@@ -206,6 +208,7 @@ function doGetNodeStatus() {
         if (error) {
             setData("node_mining_status", error, true);
         } else {
+            // the result is a boolean
             if (result) {
                 setData("node_mining_status", "Node is mining", false);
             } else {
@@ -249,12 +252,26 @@ function doGetAccounts() {
                 addAccountsToList('accounts_list', i, result[i])
             }
 
-
+            /**
+             * In order to set the coinbase different to web3.eth.accounts[0]
+             * you need to set it by
+             *      web3.miner.setEtherbase(web3.eth.accounts[X])
+             * or
+             *      > geth --address coinbase_address
+             */
             var coinbase = web3.eth.coinbase;
             // trim it so as to fit in the window/UI
             if (coinbase) coinbase = coinbase.substring(0, 25) + '...'
             setData('coinbase', coinbase, false);
-            // set the default accounts
+
+            /**
+             * Set the default accounts. defaultAccount is read/write only
+             * and used in these methods if "from:" not specified
+             *      web3.eth.sendTransaction()
+             *      web3.eth.call()
+             * 
+             * When defaultAccount is undefined it has to be set explicitly
+             */
             var defaultAccount = web3.eth.defaultAccount;
             if (!defaultAccount) {
                 web3.eth.defaultAccount = result[0];
@@ -309,11 +326,25 @@ function doSendTransaction() {
             // set the link to ether scan
             var etherscanLinkA = document.getElementById('etherscan_io_tx_link');
             etherscanLinkA.href = createEtherscanIoUrl('tx', result);
-            etherscanLinkA.innerHTML = 'etherscan.io'
+            etherscanLinkA.innerHTML = 'rinkeby.etherscan.io'
             //console.log(etherscanLinkA)
         }
     });
 }
+
+/**
+ * web3.personal.newAccount: generates addresses on the wallet associated with your node/provider. 
+ *          Do not use this method unless you are running your own node. It does
+ *          not work using Infura or a similar provider service
+ * 
+ * web3.eth.accounts.create: generates a local key pair. 
+ *          If you use this method, definitely make sure to store your key info, 
+ *          as it is only kept TEMPORARY in memory. You can then send transactions 
+ *          with web3.eth.accounts.signTransaction(tx, privateKey), but you have to 
+ *          encode any contract data with an encodeABI method first before placing 
+ *          it in tx. This is not a recommended method, and this approach is used 
+ *          under the hood by browser-based wallet providers like Metamask.
+ */
 
 /**
  * Unlocks the account
@@ -409,6 +440,7 @@ function doCompileSolidityContract() {
 
     console.log(flattenSource(source));
 
+    // TODO: get rid of this function as not supported
     web3.eth.compile.solidity(source, function (error, result) {
 
         if (error) {
@@ -528,58 +560,45 @@ function doDeployContractSynchronous() {
 
 // Utility method for creating the contract instance
 function createContractInstance(addr) {
-    var abiDefinitionString = document.getElementById('compiled_abidefinition').value;
-    var abiDefinition = JSON.parse(abiDefinitionString);
-
-    // Instance uses the definition to create the function
-
-    var contract = web3.eth.contract(abiDefinition);
-
+    let abiDefinitionString = document.getElementById("compiled_abidefinition").value;
+    let abiDefinition = JSON.parse(abiDefinitionString);
+    let contract = web3.eth.contract(abiDefinition);
+    let address = addr;
     // THIS IS AN EXAMPLE - How to create a deploy using the contract
     // var instance = contract.new(constructor_params, {from:coinbase, gas:10000})
     // Use the next for manual deployment using the data generated
     // var contractData = contract.new.getData(constructor_params, {from:coinbase, gas:10000});
-
-    var address = addr;
-
-    if (!address) address = document.getElementById('contractaddress').value;
-
-    // Instance needs the address
-
-    var instance = contract.at(address);
-
-    return instance;
+    if (!address) {
+        address = document.getElementById("contractaddress").value
+    }
+    console.log("The address is ", address);
+    return contract.at(address);
 }
+
 
 /**
  * This invokes the contract function
  * locally on the node with no state change propagation
+ * When using MetaMask, setNum call throws Error:
+ * The MetaMask web3 object does not support synchronous methods like eth_call
+ * without a callback
  */
 function doContractFunctionCall() {
-    console.log("First");
-    // This leads to the invocation of the method locally
-    var instance = createContractInstance();
+    let instance = createContractInstance();
+    let funcName = document.getElementById("contract_select_function").value;
 
-    var funcName = document.getElementById('contract_select_function').value;
-    console.log("if");
-    if (funcName === 'setNum') {
-        console.log("if");
-        var parameterValue = document.getElementById('setnum_parameter').value;
-
-        // MetaMask does not allow synchronous call to 'call' for non-constant function
-        // Change this to asynchronous :)
-        var value = instance.setNum.call(parameterValue);
-
-        setExecuteResultUI('Call', funcName, parameterValue, value, '', false);
+    if ("setNum" === funcName) {
+        let parameterValue = document.getElementById("setnum_parameter").value;
+        let value = instance.setNum.call(parameterValue);
+        setExecuteResultUI("Call", funcName, parameterValue, value, "", !1);
     } else {
-        console.log("else");
         instance.getNum.call({}, web3.eth.defaultBlock, function (error, result) {
-            setExecuteResultUI('Call', funcName, '', result, '', false);
+            setExecuteResultUI("Call", funcName, "", result, "", !1);
+
         });
-
-
     }
 }
+
 
 /**
  * send Transaction costs Gas. State changes are recorded on the chain.
@@ -587,6 +606,7 @@ function doContractFunctionCall() {
 function doContractSendCall() {
     // creating the cntract instance
     var instance = createContractInstance();
+    console.log("After instance");
     // read the ui elements
     var estimatedGas = document.getElementById('contract_execute_estimatedgas').value;
     var parameterValue = document.getElementById('setnum_parameter').value;
@@ -603,6 +623,7 @@ function doContractSendCall() {
 
     if (funcName === 'setNum') {
         // setNum with sendTransaction
+
         instance.setNum.sendTransaction(parameterValue, txnObject, function (error, result) {
 
             console.log('RECVED>>', error, result);
@@ -799,9 +820,10 @@ function createContractEventInstance() {
     // geth the indexed data values JSON
     var indexedEventValues = document.getElementById('indexed_event_values').value
     indexedEventValues = JSON.parse(indexedEventValues)
-
+    console.log("Indexed Event Values", indexedEventValues);
     var additionalFilterOptions = document.getElementById('additional_filter_event_values').value;
+    console.log(additionalFilterOptions);
     additionalFilterOptions = JSON.parse(additionalFilterOptions);
-
+    console.log("Additional Filter Options", additionalFilterOptions);
     return contractInstance.NumberSetEvent(indexedEventValues, additionalFilterOptions);
 }

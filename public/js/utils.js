@@ -3,7 +3,7 @@
  */
 
 // Holds the base URL for etherscan.io
-var etherscanBaseUrl = 'https://ropsten.etherscan.io/';
+var etherscanBaseUrl = 'https://rinkeby.etherscan.io/';
 
 
 // Since some of the functons/API are not available based on the
@@ -139,7 +139,6 @@ function createTransactionObjectJson() {
     // Get the value in ether and convert to wie
     var valueInEther = document.getElementById('send_value_in_ether').value
     var valueInWei = web3.toWei(valueInEther, 'ether');
-    console.log("value in wei", valueInWei);
     transObject.value = valueInWei;
     // set the gas and gasPrice
     if (document.getElementById('send_gas').value !== 'default')
@@ -256,6 +255,7 @@ function setExecuteResultUI(callType, functionName, parameter, return_value, txH
 
     setData('invoke_details', detail, (error));
 
+
     setData('invoke_return_value', return_value, (error));
 
     console.log('return_value=', return_value)
@@ -286,7 +286,7 @@ function generateFilterOptions() {
     if (val.length > 0) {
         //val = val.replace('\n',',');
         val = val.split('\n');
-        options['address'] = val;
+        options['address'] = "" + val; // make val a string, otherwise metamask complains that toLowerCase does not work
     }
     val = document.getElementById('topics_filter').value;
     // only 3 topics allowed in options; array created with elements each in new line
@@ -309,6 +309,7 @@ function generateFilterOptions() {
 
 
     setData('options_filter', JSON.stringify(options, undefined, 2), false);
+    console.log("options returned ", options);
     return options;
 }
 

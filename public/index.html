@@ -1,4 +1,4 @@
-s<html lang="">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -89,6 +89,8 @@ s<html lang="">
     </div>
 
     <!-- Lock / Unlock Account -->
+    <!-- This section is completely ignored by MetaMask such that I can ignore it for the 
+         my personal implementation -->
     <div class="hero-unit">
         <h1>UnLock &amp; Lock Accounts</h1>
         <!-- unlock the account -->
@@ -97,7 +99,7 @@ s<html lang="">
             <span>To</span>
             <span><select id="select_to_unlock_account"></select></span>
             <br>
-            <span>Password</span><input id="unlock_account_password" type="text" value="password" />
+            <span>Password</span><input id="unlock_account_password" type="password" value="password" />
             <br>
             <span><button onclick="doUnlockAccount()">UnLock Account</button>
             </span>
@@ -141,6 +143,7 @@ s<html lang="">
             <br>
             <span>Gas Price (wei)</span><input id="send_gas_price" type="text" value="default" />
             <br>
+            <!-- Can specify any kind of data in hex format -->
             <span>Data (ascii)</span><input id="send_data" type="text" value="default" />
             <br>
             <span>Nonce</span><input id="send_nonce" type="text" value="default" />
@@ -170,7 +173,8 @@ s<html lang="">
             <a href="" id="etherscan_io_tx_link" target="_blank">...</a>
         </div>
     </div>
-
+    <!-- Get rid of this section as web3.eth.compile.solidity(...) is not supported anymore -->
+    <!-- The stuff here is hardcoded but I guess, we can modify it -->
     <!-- Compile & Deploy Contracts -->
     <div class="hero-unit">
         <h1>Compile &amp; Deploy Contracts</h1>
@@ -227,7 +231,8 @@ contract MyContract {
             <p id="contracttransactionhash" class="notready">...</p>
             <a href="" id="contracttransactionhash_link" target="_blank"></a>
             <p>Contract Address</p>
-            <input id="contractaddress" class="ready" size="40" value="">
+            <input id="contractaddress" class="ready" size="40" value=""
+                placeholder="0x1dd314241e6bd5111a7ac3d58705800adba16556">
             <a href="" id="contractaddress_link" target="_blank"></a>
             <br>
         </div>
@@ -267,7 +272,7 @@ contract MyContract {
             <br>
             <span>Transaction Hash</span>
             <span id="invoke_contracttransactionhash" class="notready">...</span>
-            <a href="" id="invoke_contracttransactionhash_link" target="_blank"></a>
+            <a href="" id="invoke_contracttransactionhash_link" target="_blank" placeholder=""></a>
         </div>
     </div>
 
@@ -372,7 +377,7 @@ contract MyContract {
                 <!-- This is where the events will be added -->
             </ol>
         </div>
-        <!-- contract event.get -->
+
         <div class="sidekick">
             <h1>Contract Instance Logs</h1>
             <span><button onclick="doContractEventGet()">event.Get()</button></span>
@@ -386,6 +391,53 @@ contract MyContract {
         </div>
     </div>
 
+    <!-- contract.myEvent & allEvent -->
+    <div class="hero-unit">
+        <h1>Interaction Channel: Assignment</h1>
+        <!-- Watch events from specific contract instance -->
+        <div class="sidekick">
+            <h1>Watch Instance Events</h1>
+            <span>Contract Instance Address</span>
+            <pre>0x26d6bfb8288ee725f1610d349eb25b65968b755b</pre>
+            <span><input id="contract_instance_address" type="hidden" size="40"
+                    value="0x26d6bfb8288ee725f1610d349eb25b65968b755b"
+                    placeholder="Copy&amp;Paste Contract Address here." /></span>
+            <span>Indexed return values (JSON)</span>
+            <textarea id="indexed_event_values" cols="40" rows="5">
+        {
+          "timeUpdated":"0x0000000000000000000000000000000000000000000000000000000000000005"
+        }
+        </textarea>
+            <span>Additional filters (preset when contract was created)</span>
+            <textarea id="additional_filter_event_values" cols="40" rows="5">
+                {
+                "fromBlock":"4439602"
+                }
+            </textarea>
+            <span><button onclick="doContractEventWatchStart()">event.watch()</button></span>
+            <span><button onclick="doContractEventWatchStop()">event.stopWatching()</button></span>
+        </div>
+        <div class="sidekick">
+            <h1>Events/Logs (5 Latest)</h1>
+            <span>Recieve Count:</span><span id="watch_contract_instance_event_count" class="notready">Not
+                Watching</span>
+            <ol id="watch_contract_events_list">
+                <!-- This is where the events will be added -->
+            </ol>
+        </div>
+
+        <div class="sidekick">
+            <h1>Contract Instance Logs</h1>
+            <span><button onclick="doContractEventGet()">event.Get()</button></span>
+        </div>
+        <div class="sidekick">
+            <h1>Logs</h1>
+            <span>Recieve Count:</span><span id="get_contract_instance_log_count" class="notready">....</span>
+            <ol id="get_contract_instance_logs_list">
+                <!-- This is where the events will be added -->
+            </ol>
+        </div>
+    </div>
     <!-- web3.js is only needed when MetaMask is not installed otherwise
          this library is not needed as it will be injected by MetaMaks making
          it unnecessary. Thus web3 functionality may only be activated 
